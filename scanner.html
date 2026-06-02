@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATE TERMINAL</title>
+    <style>
+        body {
+            /* Switched to a clean, highly readable font for IoT screens */
+            font-family: Arial, Helvetica, sans-serif; 
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 20px;
+            text-align: center; /* Centers all text */
+        }
+        
+        .container {
+            margin: 0 auto;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin: 0 0 5px 0;
+        }
+
+        p {
+            font-size: 22px;
+            margin: 0 0 30px 0;
+            color: #555555;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-size: 24px; /* Larger label font */
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        select {
+            display: block;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            font-size: 22px; /* Massive dropdown text */
+            padding: 12px;   /* Thicker tap target */
+            border: 2px solid #333333;
+            border-radius: 4px;
+            background-color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        #reader {
+            display: block;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto 20px auto; /* Centered block */
+            border: 4px solid #000000;
+            background-color: #f4f4f4;
+        }
+
+        #result-text {
+            font-size: 28px; /* Huge status text */
+            font-weight: bold;
+            padding: 15px;
+            margin: 20px auto;
+            display: none;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .success {
+            color: #006600;
+            background-color: #e6ffe6;
+            border: 2px solid #006600;
+        }
+
+        .fail {
+            color: #cc0000;
+            background-color: #ffe6e6;
+            border: 2px solid #cc0000;
+        }
+
+        #reset-timer {
+            display: none;
+            font-size: 20px;
+            margin-top: 10px;
+            color: #666666;
+        }
+    </style>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>STATION TERMINAL</h2>
+        <p>The Scanner</p>
+    </div>
+
+    <div class="container control-group">
+        <label for="gate-select">Select Gate:</label>
+        <select id="gate-select">
+            <option value="0">0: Departure (Tap-In)</option>
+            <option value="1">1: Arrival (Tap-Out)</option>
+        </select>
+    </div>
+
+    <div class="container control-group">
+        <label for="station-select">Select Station:</label>
+        <select id="station-select">
+            <option value="0">01: Terminus A</option>
+            <option value="1">02: Park Avenue</option>
+            <option value="2">03: Central Hub</option>
+            <option value="3">04: Gateway Square</option>
+            <option value="4">05: Downtown</option>
+            <option value="5">06: Riverfront</option>
+            <option value="6">07: Museum District</option>
+            <option value="7">08: Tech Park</option>
+            <option value="8">09: University Campus</option>
+            <option value="9">10: South Station</option>
+        </select>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="container">
+        <div id="result-text"></div>
+        <div id="reset-timer">
+            Hardware resetting in <span id="countdown">10</span>s...
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+        const html5QrCode = new Html5Qrcode("reader");
+
+        // Start the camera automatically
+        Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length) {
+                let cameraId = devices[0].id;
+                html5QrCode.start(
+                    cameraId, 
+                    { fps: 15, qrbox: {width: 250, height: 250} },
+                    (decodedText) => {
+                        handleScan(decodedText);
+                    },
+                    () => {
+                        // ignore scanning errors
+                    })
+                .catch((err) => {
+                    console.error("Camera start error: ", err);
+                    document.getElementById('reader').innerHTML = "<p style='color:red; padding: 20px; font-weight:bold;'>Camera Error / Permission Denied.</p>";
+                });
+            }
+        }).catch(err => {
+            console.error("No cameras found.", err);
+        });
+
+        function handleScan(qrString) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const gateType = document.getElementById('gate-select').value;
+            const stationId = document.getElementById('station-select').value;
+
+            html5QrCode.pause();
+
+            fetch('/process_scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    qr_string: qrString,
+                    gate_type: gateType,
+                    station_id: stationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                triggerGateResponse(data.success, data.message);
+            })
+            .catch((error) => {
+                console.error('Network Error:', error);
+                triggerGateResponse(false, "NETWORK ERROR.");
+            });
+        }
+
+        function triggerGateResponse(isSuccess, message) {
+            const resultText = document.getElementById('result-text');
+            const countdownSpan = document.getElementById('countdown');
+            const resetTimer = document.getElementById('reset-timer');
+            
+            resultText.style.display = "block";
+            resetTimer.style.display = "block";
+            
+            if (isSuccess) {
+                resultText.innerText = message;
+                resultText.className = "success";
+            } else {
+                resultText.innerText = message;
+                resultText.className = "fail";
+            }
+
+            let timeLeft = 10;
+            countdownSpan.innerText = timeLeft;
+            
+            const timer = setInterval(() => {
+                timeLeft -= 1;
+                countdownSpan.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    resultText.style.display = "none";
+                    resetTimer.style.display = "none";
+                    resultText.className = "";
+                    isProcessing = false;
+                    html5QrCode.resume();
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

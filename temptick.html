@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Purchase Ticket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .header {
+            background-color: #8E24AA;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .kiosk-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+        }
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+            text-align: left;
+            width: 300px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .buy-btn {
+            background-color: #8E24AA;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 30px;
+            transition: 0.2s;
+        }
+        .buy-btn:hover {
+            background-color: #6A1B9A;
+        }
+        canvas {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #8E24AA;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Route Map & Ticketing</h1>
+    </div>
+
+    <div class="kiosk-container">
+        <div>
+            <canvas id="metroMap" width="500" height="450"></canvas>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-top: 0; color: #8E24AA;">Purchase Ticket</h2>
+            
+            <form action="/buy" method="POST">
+                <label>Start Station:</label>
+                <select id="start_station" name="start_station" onchange="drawMap()" required>
+                    <option value="" disabled selected>Select Departure...</option>
+                    <option value="0">Station 1 (Terminus A)</option>
+                    <option value="1">Station 2 (Park Avenue)</option>
+                    <option value="2">Station 3 (Central Hub)</option>
+                    <option value="3">Station 4 (Gateway Square)</option>
+                    <option value="4">Station 5 (Downtown)</option>
+                    <option value="5">Station 6 (Riverfront)</option>
+                    <option value="6">Station 7 (Museum District)</option>
+                    <option value="7">Station 8 (Tech Park)</option>
+                    <option value="8">Station 9 (University Campus)</option>
+                    <option value="9">Station 10 (South Station)</option>
+                </select>
+
+                <label>End Station:</label>
+                <select id="end_station" name="end_station" onchange="drawMap()" required>
+                    <option value="" disabled selected>Select Destination...</option>
+                    <option value="0">Station 1 (Terminus A)</option>
+                    <option value="1">Station 2 (Park Avenue)</option>
+                    <option value="2">Station 3 (Central Hub)</option>
+                    <option value="3">Station 4 (Gateway Square)</option>
+                    <option value="4">Station 5 (Downtown)</option>
+                    <option value="5">Station 6 (Riverfront)</option>
+                    <option value="6">Station 7 (Museum District)</option>
+                    <option value="7">Station 8 (Tech Park)</option>
+                    <option value="8">Station 9 (University Campus)</option>
+                    <option value="9">Station 10 (South Station)</option>
+                </select>
+
+                <button type="submit" class="buy-btn">BUY TICKET</button>
+            </form>
+        </div>
+    </div>
+    
+    <a href="/" class="back-link">← Back to Main Menu</a>
+
+    <script>
+        const canvas = document.getElementById("metroMap");
+        const ctx = canvas.getContext("2d");
+
+        const stations = [
+            {x: 60, y: 80, name: "Stn 1"},
+            {x: 160, y: 80, name: "Stn 2"},
+            {x: 260, y: 80, name: "Stn 3"},
+            {x: 360, y: 80, name: "Stn 4"},
+            {x: 420, y: 120, name: "Stn 5"}, 
+            {x: 440, y: 190, name: "Stn 6"},
+            {x: 440, y: 250, name: "Stn 7"},
+            {x: 440, y: 310, name: "Stn 8"},
+            {x: 440, y: 370, name: "Stn 9"},
+            {x: 440, y: 430, name: "Stn 10"}
+        ];
+
+        function drawMap() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.moveTo(stations[0].x, stations[0].y);
+            for(let i = 1; i < stations.length; i++) {
+                ctx.lineTo(stations[i].x, stations[i].y);
+            }
+            ctx.strokeStyle = "#8E24AA"; 
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            const startVal = document.getElementById("start_station").value;
+            const endVal = document.getElementById("end_station").value;
+
+            for(let i = 0; i < stations.length; i++) {
+                
+                ctx.beginPath();
+                ctx.arc(stations[i].x, stations[i].y, 12, 0, Math.PI * 2);
+                ctx.fillStyle = "#8E24AA";
+                ctx.fill();
+
+                let innerColor = "#FFFFFF"; 
+                
+                if (startVal !== "" && parseInt(startVal) === i) {
+                    innerColor = "#4CAF50"; 
+                } else if (endVal !== "" && parseInt(endVal) === i) {
+                    innerColor = "#F44336"; 
+                }
+
+                ctx.beginPath();
+                ctx.arc(stations[i].x, stations[i].y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = innerColor;
+                ctx.fill();
+
+                ctx.fillStyle = "#333";
+                ctx.font = "12px Arial";
+                if (i < 4) {
+                    ctx.fillText(stations[i].name, stations[i].x - 15, stations[i].y - 20);
+                } else {
+                    ctx.fillText(stations[i].name, stations[i].x + 20, stations[i].y + 4);
+                }
+            }
+        }
+
+        drawMap();
+    </script>
+</body>
+</html>

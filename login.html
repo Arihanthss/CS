@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Metro System - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .header {
+            background-color: #8E24AA;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+            width: 300px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            background-color: #8E24AA;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 25px;
+            transition: 0.2s;
+        }
+        .login-btn:hover {
+            background-color: #6A1B9A;
+        }
+        .error-msg {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #ffcdd2;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .register-link a {
+            color: #8E24AA;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #8E24AA;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>User Portal Login</h1>
+    </div>
+
+    <div class="login-box">
+        <h2 style="margin-top: 0; color: #8E24AA; text-align: center;">Login</h2>
+        
+        {% if error %}
+            <div class="error-msg">{{ error }}</div>
+        {% endif %}
+        
+        <form action="/login" method="POST">
+            <label>Username:</label>
+            <input type="text" name="username" required placeholder="Enter username">
+            
+            <label>Password:</label>
+            <input type="password" name="password" required placeholder="Enter password">
+            
+            <button type="submit" class="login-btn">LOGIN</button>
+        </form>
+        
+        <div class="register-link">
+            New user? <a href="/register">Click here to register</a>
+        </div>
+    </div>
+    
+    <a href="/" class="back-link">← Back to Main Menu</a>
+
+</body>
+</html>
